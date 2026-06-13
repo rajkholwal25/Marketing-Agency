@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Edit Profile — Influence Connect{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card" style="max-width: 520px;">
+    <h2>Edit Profile</h2>
+    <p class="auth-subtitle">Update your influencer details</p>
+
+    <form method="POST" action="{{ url_for('influencer.profile') }}">
+      <div class="form-group">
+        <label for="full_name">Full Name</label>
+        <input type="text" id="full_name" name="full_name" value="{{ profile.full_name }}" required>
+      </div>
+
+      <div class="form-group">
+        <label for="category_id">Category</label>
+        <select id="category_id" name="category_id" required>
+          {% for cat in categories %}
+          <option value="{{ cat.id }}" {% if cat.id == profile.category_id %}selected{% endif %}>
+            {{ cat.icon }} {{ cat.name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="instagram_handle">Instagram Handle</label>
+        <input type="text" id="instagram_handle" name="instagram_handle" value="{{ profile.instagram_handle }}" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="followers">Followers</label>
+          <input type="number" id="followers" name="followers" value="{{ profile.followers }}" min="0">
+        </div>
+        <div class="form-group">
+          <label for="monthly_reach">Monthly Reach</label>
+          <input type="number" id="monthly_reach" name="monthly_reach" value="{{ profile.monthly_reach }}" min="0">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="monthly_pricing">Monthly Pricing (₹)</label>
+        <input type="number" id="monthly_pricing" name="monthly_pricing" value="{{ profile.monthly_pricing }}" required min="0" step="100">
+      </div>
+
+      <div class="form-group">
+        <label for="bio">Bio</label>
+        <textarea id="bio" name="bio">{{ profile.bio or '' }}</textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">Save Changes</button>
+      <a href="{{ url_for('influencer.dashboard') }}" class="btn btn-ghost btn-block" style="margin-top: 12px;">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Influence Connect{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="bg-blobs">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+  <div class="grid-overlay"></div>
+
+  <nav class="navbar">
+    <div class="container nav-inner">
+      <a href="{{ url_for('main.index') }}" class="logo">
+        <span class="logo-icon">⚡</span>
+        Influence Connect
+      </a>
+      <div class="nav-links">
+        {% if current_user.is_authenticated %}
+          <span class="nav-user">{{ current_user.email }} · {{ current_user.role }}</span>
+          {% if current_user.role == 'brand' %}
+            <a href="{{ url_for('brand.dashboard') }}" class="btn btn-ghost btn-sm">Dashboard</a>
+          {% elif current_user.role == 'influencer' %}
+            <a href="{{ url_for('influencer.dashboard') }}" class="btn btn-ghost btn-sm">Dashboard</a>
+          {% elif current_user.role == 'admin' %}
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-ghost btn-sm">Admin</a>
+          {% endif %}
+          <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">Logout</a>
+        {% else %}
+          <a href="{{ url_for('auth.login') }}" class="btn btn-ghost btn-sm">Login</a>
+          <a href="{{ url_for('auth.signup', role='brand') }}" class="btn btn-primary btn-sm">Get Started</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2026 Influence Connect — Where Brands Meet Creators</p>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

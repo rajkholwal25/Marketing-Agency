@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Influencer Dashboard — Influence Connect{% endblock %}
+
+{% macro format_num(n) -%}
+  {%- if n >= 1000000 -%}
+    {{ "%.1f"|format(n / 1000000) }}M
+  {%- elif n >= 1000 -%}
+    {{ "%.1f"|format(n / 1000) }}K
+  {%- else -%}
+    {{ n }}
+  {%- endif -%}
+{%- endmacro %}
+
+{% block content %}
+<div class="container">
+  <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <h1>Welcome, {{ profile.full_name }} ⭐</h1>
+      <p>{{ profile.category.icon }} {{ profile.category.name }} · @{{ profile.instagram_handle }}</p>
+    </div>
+    <a href="{{ url_for('influencer.profile') }}" class="btn btn-ghost btn-sm">Edit Profile</a>
+  </div>
+
+  <div class="stats-grid" style="margin-bottom: 48px;">
+    <div class="stat-card">
+      <div class="number">{{ format_num(profile.followers) }}</div>
+      <div class="label">Followers</div>
+    </div>
+    <div class="stat-card">
+      <div class="number">{{ format_num(profile.monthly_reach) }}</div>
+      <div class="label">Monthly Reach</div>
+    </div>
+    <div class="stat-card">
+      <div class="number">₹{{ "{:,.0f}".format(profile.monthly_pricing) }}</div>
+      <div class="label">Your Monthly Rate</div>
+    </div>
+  </div>
+
+  <h2 class="section-title">🏢 Brands on Platform</h2>
+  {% if brands %}
+  <div class="cards-grid stagger">
+    {% for brand in brands %}
+    <div class="profile-card">
+      <div class="card-header">
+        <div class="avatar">{{ brand.company_name[0] }}</div>
+        <div>
+          <h3>{{ brand.company_name }}</h3>
+          <span class="handle">{{ brand.industry or 'Brand' }}</span>
+        </div>
+      </div>
+
+      {% if brand.description %}
+      <p class="card-bio">{{ brand.description }}</p>
+      {% endif %}
+
+      <div class="card-email" style="margin-top: 16px;">
+        ✉️ {{ brand.contact_email or brand.user.email }}
+      </div>
+
+      {% if brand.website %}
+      <div class="card-email" style="margin-top: 8px;">
+        🌐 <a href="{{ brand.website }}" target="_blank" rel="noopener" style="color: var(--primary);">{{ brand.website }}</a>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">🏢</div>
+    <h3>No brands yet</h3>
+    <p>Brands are signing up — you'll be discoverable soon!</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

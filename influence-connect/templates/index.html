@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Influence Connect — Brands & Creators{% endblock %}
+
+{% block content %}
+<section class="hero container">
+  <div class="hero-badge">
+    <span>✦</span> India's #1 Influencer Marketplace
+  </div>
+  <h1>Connect <span class="gradient-text">Brands</span> with<br>Top <span class="gradient-text">Influencers</span></h1>
+  <p>Discover creators by category, compare reach & pricing, and launch campaigns that convert. Built for brands and influencers who mean business.</p>
+  <div class="hero-cta">
+    <a href="{{ url_for('auth.signup', role='brand') }}" class="btn btn-primary">Register as Brand</a>
+    <a href="{{ url_for('auth.signup', role='influencer') }}" class="btn btn-ghost">Join as Influencer</a>
+  </div>
+</section>
+
+<section class="container role-cards">
+  <div class="role-card">
+    <span class="role-icon">🏢</span>
+    <h3>For Brands</h3>
+    <p>Browse categories like Sports, Study & Makeup. View influencer cards with followers, reach, email & monthly pricing.</p>
+    <div class="role-actions">
+      <a href="{{ url_for('auth.signup', role='brand') }}" class="btn btn-primary btn-sm">Sign Up</a>
+      <a href="{{ url_for('auth.login', role='brand') }}" class="btn btn-ghost btn-sm">Login</a>
+    </div>
+  </div>
+
+  <div class="role-card">
+    <span class="role-icon">⭐</span>
+    <h3>For Influencers</h3>
+    <p>Register your profile, set your monthly rate, and get discovered by brands looking for creators in your niche.</p>
+    <div class="role-actions">
+      <a href="{{ url_for('auth.signup', role='influencer') }}" class="btn btn-primary btn-sm">Sign Up</a>
+      <a href="{{ url_for('auth.login', role='influencer') }}" class="btn btn-ghost btn-sm">Login</a>
+    </div>
+  </div>
+
+  <div class="role-card">
+    <span class="role-icon">🛡️</span>
+    <h3>For Admin</h3>
+    <p>Manage users, categories, and oversee the entire platform from a powerful admin dashboard.</p>
+    <div class="role-actions">
+      <a href="{{ url_for('auth.login', role='admin') }}" class="btn btn-primary btn-sm">Admin Login</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

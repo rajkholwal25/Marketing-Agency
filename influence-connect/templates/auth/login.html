@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Login — Influence Connect{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+    <h2>Welcome back</h2>
+    <p class="auth-subtitle">Sign in to your account</p>
+
+    <div class="role-tabs">
+      <a href="{{ url_for('auth.login', role='brand') }}" class="role-tab {% if role == 'brand' %}active{% endif %}" data-role="brand">🏢 Brand</a>
+      <a href="{{ url_for('auth.login', role='influencer') }}" class="role-tab {% if role == 'influencer' %}active{% endif %}" data-role="influencer">⭐ Influencer</a>
+      <a href="{{ url_for('auth.login', role='admin') }}" class="role-tab {% if role == 'admin' %}active{% endif %}" data-role="admin">🛡️ Admin</a>
+    </div>
+
+    <form method="POST" action="{{ url_for('auth.login', role=role) }}">
+      <input type="hidden" name="role" value="{{ role }}">
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="you@company.com" required autofocus>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="••••••••" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+    </form>
+
+    {% if role != 'admin' %}
+    <p class="auth-footer">
+      Don't have an account?
+      <a href="{{ url_for('auth.signup', role=role) }}">Create one</a>
+    </p>
+    {% endif %}
+
+    {% if role == 'admin' %}
+    <p class="auth-footer" style="margin-top: 16px; font-size: 0.8rem;">
+      Demo: admin@influence.com / admin123
+    </p>
+    {% elif role == 'brand' %}
+    <p class="auth-footer" style="margin-top: 16px; font-size: 0.8rem;">
+      Demo: brand@demo.com / demo123
+    </p>
+    {% elif role == 'influencer' %}
+    <p class="auth-footer" style="margin-top: 16px; font-size: 0.8rem;">
+      Demo: kavya_glam@demo.com / demo123
+    </p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

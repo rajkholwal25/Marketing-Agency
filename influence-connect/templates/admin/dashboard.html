@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard — Influence Connect{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="dashboard-header">
+    <h1>Admin Panel 🛡️</h1>
+    <p>Manage users, categories, and platform overview</p>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="number">{{ stats.users }}</div>
+      <div class="label">Total Users</div>
+    </div>
+    <div class="stat-card">
+      <div class="number">{{ stats.brands }}</div>
+      <div class="label">Brands</div>
+    </div>
+    <div class="stat-card">
+      <div class="number">{{ stats.influencers }}</div>
+      <div class="label">Influencers</div>
+    </div>
+    <div class="stat-card">
+      <div class="number">{{ stats.categories }}</div>
+      <div class="label">Categories</div>
+    </div>
+  </div>
+
+  <div class="admin-section">
+    <h2 class="section-title">➕ Add Category</h2>
+    <form class="add-category-form" method="POST" action="{{ url_for('admin.add_category') }}">
+      <input type="text" name="name" placeholder="Category name" required>
+      <input type="text" name="icon" placeholder="Emoji icon" value="✨">
+      <input type="color" name="color" value="#6366f1" title="Color">
+      <button type="submit" class="btn btn-primary btn-sm">Add</button>
+    </form>
+  </div>
+
+  <div class="admin-section">
+    <h2 class="section-title">📂 Categories</h2>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Icon</th>
+          <th>Name</th>
+          <th>Slug</th>
+          <th>Influencers</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cat in categories %}
+        <tr>
+          <td>{{ cat.icon }}</td>
+          <td>{{ cat.name }}</td>
+          <td>{{ cat.slug }}</td>
+          <td>{{ cat.influencers|length }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="admin-section">
+    <h2 class="section-title">👥 All Users</h2>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Joined</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr>
+          <td>{{ user.email }}</td>
+          <td><span class="badge badge-{{ user.role }}">{{ user.role }}</span></td>
+          <td>{{ user.created_at.strftime('%d %b %Y') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

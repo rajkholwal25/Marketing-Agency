@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Brand Dashboard — Influence Connect{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="dashboard-header">
+    <h1>Hey, {{ profile.company_name if profile else 'Brand' }} 👋</h1>
+    <p>Pick a category to discover top influencers for your next campaign</p>
+  </div>
+
+  <h2 class="section-title">📂 Browse Categories</h2>
+  <div class="category-grid stagger">
+    {% for cat in categories %}
+    <a href="{{ url_for('brand.category_influencers', slug=cat.slug) }}"
+       class="category-card"
+       style="--cat-color: {{ cat.color }}">
+      <span class="category-icon">{{ cat.icon }}</span>
+      <span class="category-name">{{ cat.name }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}{{ category.name }} Influencers — Influence Connect{% endblock %}
+
+{% macro format_num(n) -%}
+  {%- if n >= 1000000 -%}
+    {{ "%.1f"|format(n / 1000000) }}M
+  {%- elif n >= 1000 -%}
+    {{ "%.1f"|format(n / 1000) }}K
+  {%- else -%}
+    {{ n }}
+  {%- endif -%}
+{%- endmacro %}
+
+{% block content %}
+<div class="container">
+  <a href="{{ url_for('brand.dashboard') }}" class="back-link">← Back to Categories</a>
+
+  <div class="dashboard-header">
+    <h1>{{ category.icon }} {{ category.name }} Influencers</h1>
+    <p>{{ influencers|length }} creator{{ 's' if influencers|length != 1 else '' }} available for collaboration</p>
+  </div>
+
+  {% if influencers %}
+  <div class="cards-grid stagger">
+    {% for inf in influencers %}
+    <div class="profile-card">
+      <div class="card-header">
+        <div class="avatar">{{ inf.full_name[0] }}</div>
+        <div>
+          <h3>{{ inf.full_name }}</h3>
+          <span class="handle">@{{ inf.instagram_handle }}</span>
+        </div>
+      </div>
+
+      <div class="card-stats">
+        <div class="stat">
+          <div class="stat-value">{{ format_num(inf.followers) }}</div>
+          <div class="stat-label">Followers</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">{{ format_num(inf.monthly_reach) }}</div>
+          <div class="stat-label">Monthly Reach</div>
+        </div>
+      </div>
+
+      <div class="price-tag">
+        <div>
+          <div class="amount">₹{{ "{:,.0f}".format(inf.monthly_pricing) }}</div>
+          <div class="period">per month</div>
+        </div>
+        <span>💰</span>
+      </div>
+
+      <div class="card-email">
+        ✉️ {{ inf.user.email }}
+      </div>
+
+      {% if inf.bio %}
+      <p class="card-bio">{{ inf.bio }}</p>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">🔍</div>
+    <h3>No influencers yet</h3>
+    <p>Check back soon — creators are joining this category!</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
