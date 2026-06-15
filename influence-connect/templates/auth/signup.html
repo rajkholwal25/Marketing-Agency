@@ -66,22 +66,34 @@
         </select>
       </div>
       <div class="form-group">
-        <label for="instagram_handle">Instagram Handle *</label>
-        <input type="text" id="instagram_handle" name="instagram_handle" placeholder="@yourhandle" required>
+        <label for="instagram_handle">Instagram Profile URL or @username *</label>
+        <input type="text" id="instagram_handle" name="instagram_handle"
+               placeholder="https://instagram.com/yourhandle" required>
+        <small class="field-hint">Paste full Instagram link — we auto-fetch your @username</small>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label for="followers">Followers</label>
-          <input type="number" id="followers" name="followers" placeholder="125000" min="0">
+          <input type="text" id="followers" name="followers" placeholder="1.1M or 125K">
         </div>
         <div class="form-group">
           <label for="monthly_reach">Monthly Reach</label>
-          <input type="number" id="monthly_reach" name="monthly_reach" placeholder="450000" min="0">
+          <input type="text" id="monthly_reach" name="monthly_reach" placeholder="2.5M or 450K">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="reel_pricing">Reel Pricing (₹) *</label>
+          <input type="number" id="reel_pricing" name="reel_pricing" placeholder="15000" required min="0" step="100">
+        </div>
+        <div class="form-group">
+          <label for="story_pricing">Story Pricing (₹) *</label>
+          <input type="number" id="story_pricing" name="story_pricing" placeholder="5000" required min="0" step="100">
         </div>
       </div>
       <div class="form-group">
-        <label for="monthly_pricing">Monthly Pricing (₹) *</label>
-        <input type="number" id="monthly_pricing" name="monthly_pricing" placeholder="25000" required min="0" step="100">
+        <label for="post_pricing">Post Pricing (₹) *</label>
+        <input type="number" id="post_pricing" name="post_pricing" placeholder="8000" required min="0" step="100">
       </div>
       <div class="form-group">
         <label for="bio">Bio</label>

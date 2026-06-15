@@ -66,10 +66,19 @@ class InfluencerProfile(db.Model):
     full_name = db.Column(db.String(120), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey("categories.id"), nullable=False)
     instagram_handle = db.Column(db.String(80), nullable=False)
-    followers = db.Column(db.Integer, default=0)
-    monthly_reach = db.Column(db.Integer, default=0)
-    monthly_pricing = db.Column(db.Float, nullable=False)
+    instagram_url = db.Column(db.String(200))
+    followers = db.Column(db.String(30), default="—")
+    monthly_reach = db.Column(db.String(30), default="—")
+    reel_pricing = db.Column(db.Float, nullable=False, default=0)
+    story_pricing = db.Column(db.Float, nullable=False, default=0)
+    post_pricing = db.Column(db.Float, nullable=False, default=0)
     bio = db.Column(db.Text)
 
     user = db.relationship("User", back_populates="influencer_profile")
     category = db.relationship("Category", back_populates="influencers")
+
+    @property
+    def profile_url(self) -> str:
+        from utils.instagram import instagram_profile_url
+
+        return self.instagram_url or instagram_profile_url(self.instagram_handle)

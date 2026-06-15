@@ -25,24 +25,36 @@
       </div>
 
       <div class="form-group">
-        <label for="instagram_handle">Instagram Handle</label>
-        <input type="text" id="instagram_handle" name="instagram_handle" value="{{ profile.instagram_handle }}" required>
+        <label for="instagram_handle">Instagram Profile URL or @username</label>
+        <input type="text" id="instagram_handle" name="instagram_handle"
+               value="{{ profile.instagram_url or profile.profile_url }}" required>
+        <small class="field-hint">Paste link or @handle — username auto-detected</small>
       </div>
 
       <div class="form-row">
         <div class="form-group">
           <label for="followers">Followers</label>
-          <input type="number" id="followers" name="followers" value="{{ profile.followers }}" min="0">
+          <input type="text" id="followers" name="followers" value="{{ profile.followers }}" placeholder="1.1M">
         </div>
         <div class="form-group">
           <label for="monthly_reach">Monthly Reach</label>
-          <input type="number" id="monthly_reach" name="monthly_reach" value="{{ profile.monthly_reach }}" min="0">
+          <input type="text" id="monthly_reach" name="monthly_reach" value="{{ profile.monthly_reach }}" placeholder="2.5M">
         </div>
       </div>
 
+      <div class="form-row">
+        <div class="form-group">
+          <label for="reel_pricing">Reel Pricing (₹)</label>
+          <input type="number" id="reel_pricing" name="reel_pricing" value="{{ profile.reel_pricing }}" required min="0" step="100">
+        </div>
+        <div class="form-group">
+          <label for="story_pricing">Story Pricing (₹)</label>
+          <input type="number" id="story_pricing" name="story_pricing" value="{{ profile.story_pricing }}" required min="0" step="100">
+        </div>
+      </div>
       <div class="form-group">
-        <label for="monthly_pricing">Monthly Pricing (₹)</label>
-        <input type="number" id="monthly_pricing" name="monthly_pricing" value="{{ profile.monthly_pricing }}" required min="0" step="100">
+        <label for="post_pricing">Post Pricing (₹)</label>
+        <input type="number" id="post_pricing" name="post_pricing" value="{{ profile.post_pricing }}" required min="0" step="100">
       </div>
 
       <div class="form-group">

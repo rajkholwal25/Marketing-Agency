@@ -5,6 +5,7 @@ from flask_login import current_user, login_required, login_user, logout_user
 
 from extensions import db
 from models import BrandProfile, Category, InfluencerProfile, User
+from utils.instagram import normalize_stat, parse_instagram_handle, instagram_profile_url
 
 auth_bp = __import__("flask").Blueprint("auth", __name__)
 
@@ -95,36 +96,48 @@ def signup():
         elif role == "influencer":
             full_name = request.form.get("full_name", "").strip()
             category_id = request.form.get("category_id")
-            instagram = request.form.get("instagram_handle", "").strip().lstrip("@")
-            pricing = request.form.get("monthly_pricing", "0")
+            insta_input = request.form.get("instagram_handle", "").strip()
+            instagram = parse_instagram_handle(insta_input)
+            reel = request.form.get("reel_pricing", "0")
+            story = request.form.get("story_pricing", "0")
+            post = request.form.get("post_pricing", "0")
+            followers = normalize_stat(request.form.get("followers", ""))
+            monthly_reach = normalize_stat(request.form.get("monthly_reach", ""))
 
             if not full_name or not category_id or not instagram:
-                flash("Name, category, and Instagram handle are required.", "error")
+                flash("Name, category, and Instagram URL or handle are required.", "error")
             else:
                 try:
-                    pricing_val = float(pricing)
+                    reel_val = float(reel)
+                    story_val = float(story)
+                    post_val = float(post)
+                    if reel_val <= 0 and story_val <= 0 and post_val <= 0:
+                        flash("Enter at least one pricing amount.", "error")
+                    else:
+                        user = User(email=email, role="influencer")
+                        user.set_password(password)
+                        db.session.add(user)
+                        db.session.flush()
+                        profile = InfluencerProfile(
+                            user_id=user.id,
+                            full_name=full_name,
+                            category_id=int(category_id),
+                            instagram_handle=instagram,
+                            instagram_url=instagram_profile_url(insta_input),
+                            followers=followers,
+                            monthly_reach=monthly_reach,
+                            reel_pricing=reel_val,
+                            story_pricing=story_val,
+                            post_pricing=post_val,
+                            bio=request.form.get("bio", "").strip(),
+                        )
+                        db.session.add(profile)
+                        db.session.commit()
+                        login_user(user)
+                        flash("Welcome! Your influencer profile is live.", "success")
+                        return redirect(url_for("influencer.dashboard"))
                 except ValueError:
-                    flash("Please enter a valid monthly price.", "error")
-                else:
-                    user = User(email=email, role="influencer")
-                    user.set_password(password)
-                    db.session.add(user)
-                    db.session.flush()
-                    profile = InfluencerProfile(
-                        user_id=user.id,
-                        full_name=full_name,
-                        category_id=int(category_id),
-                        instagram_handle=instagram,
-                        followers=int(request.form.get("followers") or 0),
-                        monthly_reach=int(request.form.get("monthly_reach") or 0),
-                        monthly_pricing=pricing_val,
-                        bio=request.form.get("bio", "").strip(),
-                    )
-                    db.session.add(profile)
-                    db.session.commit()
-                    login_user(user)
-                    flash("Welcome! Your influencer profile is live.", "success")
-                    return redirect(url_for("influencer.dashboard"))
+                    flash("Please enter valid pricing for reel, story, and post.", "error")
 
     return render_template("auth/signup.html", role=role, categories=categories)
 

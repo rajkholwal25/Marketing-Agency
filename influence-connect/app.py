@@ -29,10 +29,122 @@ def create_app(config_class=Config):
     app.register_blueprint(admin_bp)
 
     with app.app_context():
-        db.create_all()
-        _seed_data()
+        try:
+            db.create_all()
+            _migrate_pricing_columns()
+            _migrate_profile_stats()
+            _seed_data()
+        except Exception as exc:
+            if app.config.get("SQLALCHEMY_DATABASE_URI", "").startswith("sqlite"):
+                raise
+            print(
+                "\n[!] Supabase connection failed - check DATABASE_URL password in .env\n"
+                f"   Error: {exc}\n"
+            )
+            raise SystemExit(1) from exc
 
     return app
+
+
+def _migrate_pricing_columns():
+    """Add reel/story/post pricing columns; migrate from old monthly_pricing if present."""
+    from sqlalchemy import inspect, text
+
+    insp = inspect(db.engine)
+    if "influencer_profiles" not in insp.get_table_names():
+        return
+
+    cols = {c["name"] for c in insp.get_columns("influencer_profiles")}
+    if "reel_pricing" in cols:
+        return
+
+    stmts = [
+        "ALTER TABLE influencer_profiles ADD COLUMN reel_pricing DOUBLE PRECISION DEFAULT 0",
+        "ALTER TABLE influencer_profiles ADD COLUMN story_pricing DOUBLE PRECISION DEFAULT 0",
+        "ALTER TABLE influencer_profiles ADD COLUMN post_pricing DOUBLE PRECISION DEFAULT 0",
+    ]
+    if "monthly_pricing" in cols:
+        stmts.append(
+            "UPDATE influencer_profiles SET reel_pricing = monthly_pricing, "
+            "story_pricing = ROUND(monthly_pricing * 0.35), "
+            "post_pricing = ROUND(monthly_pricing * 0.5)"
+        )
+
+    with db.engine.begin() as conn:
+        for sql in stmts:
+            conn.execute(text(sql))
+
+
+def _format_int_stat(value) -> str:
+    try:
+        n = int(value)
+    except (TypeError, ValueError):
+        return str(value) if value else "—"
+    if n <= 0:
+        return "—"
+    if n >= 1_000_000_000:
+        s = f"{n / 1_000_000_000:.1f}B"
+    elif n >= 1_000_000:
+        s = f"{n / 1_000_000:.1f}M"
+    elif n >= 1_000:
+        s = f"{n / 1_000:.1f}K"
+    else:
+        return str(n)
+    return s.replace(".0K", "K").replace(".0M", "M").replace(".0B", "B")
+
+
+def _migrate_profile_stats():
+    """Convert followers/reach to text (1.1M, 125K); add instagram_url column."""
+    from sqlalchemy import inspect, text
+
+    insp = inspect(db.engine)
+    if "influencer_profiles" not in insp.get_table_names():
+        return
+
+    cols = {c["name"] for c in insp.get_columns("influencer_profiles")}
+
+    if "instagram_url" not in cols:
+        with db.engine.begin() as conn:
+            conn.execute(text("ALTER TABLE influencer_profiles ADD COLUMN instagram_url VARCHAR(200)"))
+
+    if "postgresql" not in str(db.engine.url):
+        return
+
+    with db.engine.connect() as conn:
+        types = {
+            row[0]: row[1]
+            for row in conn.execute(text(
+                "SELECT column_name, data_type FROM information_schema.columns "
+                "WHERE table_name = 'influencer_profiles' "
+                "AND column_name IN ('followers', 'monthly_reach')"
+            ))
+        }
+
+    if types.get("followers") != "integer":
+        return
+
+    stat_case = """
+        CASE
+            WHEN {col} >= 1000000000 THEN TRIM(TRAILING '.0' FROM ROUND({col}::numeric / 1000000000, 1)::text) || 'B'
+            WHEN {col} >= 1000000 THEN TRIM(TRAILING '.0' FROM ROUND({col}::numeric / 1000000, 1)::text) || 'M'
+            WHEN {col} >= 1000 THEN TRIM(TRAILING '.0' FROM ROUND({col}::numeric / 1000, 1)::text) || 'K'
+            ELSE {col}::text
+        END
+    """
+
+    with db.engine.begin() as conn:
+        conn.execute(text(
+            f"ALTER TABLE influencer_profiles ALTER COLUMN followers TYPE VARCHAR(30) "
+            f"USING ({stat_case.format(col='followers')})"
+        ))
+        conn.execute(text(
+            f"ALTER TABLE influencer_profiles ALTER COLUMN monthly_reach TYPE VARCHAR(30) "
+            f"USING ({stat_case.format(col='monthly_reach')})"
+        ))
+        conn.execute(text(
+            "UPDATE influencer_profiles SET instagram_url = 'https://instagram.com/' || instagram_handle "
+            "WHERE instagram_url IS NULL OR instagram_url = ''"
+        ))
 
 
 def _seed_data():
@@ -74,20 +186,20 @@ def _seed_data():
         )
     )
 
-    # Demo influencers
+    # Demo: slug, name, insta, followers, reach, reel, story, post (stats as strings)
     demo_influencers = [
-        ("sports", "Rahul Sharma", "rahul_fitness", 125000, 450000, 25000),
-        ("sports", "Priya Athlete", "priya_runs", 89000, 320000, 18000),
-        ("study", "Study With Arjun", "arjun_studies", 210000, 780000, 35000),
-        ("study", "Neha Educates", "neha_edu", 156000, 520000, 28000),
-        ("makeup", "Glam by Kavya", "kavya_glam", 340000, 1200000, 55000),
-        ("makeup", "Beauty Rituals", "beauty_rituals", 275000, 950000, 42000),
-        ("fashion", "Style Diaries", "style_diaries", 198000, 680000, 32000),
-        ("tech", "Tech Talk India", "techtalk_in", 420000, 1500000, 75000),
+        ("sports", "Rahul Sharma", "rahul_fitness", "125K", "450K", 15000, 5000, 8000),
+        ("sports", "Priya Athlete", "priya_runs", "89K", "320K", 12000, 4000, 6000),
+        ("study", "Study With Arjun", "arjun_studies", "210K", "780K", 25000, 8000, 12000),
+        ("study", "Neha Educates", "neha_edu", "156K", "520K", 18000, 6000, 10000),
+        ("makeup", "Glam by Kavya", "kavya_glam", "340K", "1.2M", 45000, 15000, 25000),
+        ("makeup", "Beauty Rituals", "beauty_rituals", "275K", "950K", 35000, 12000, 20000),
+        ("fashion", "Style Diaries", "style_diaries", "198K", "680K", 22000, 7000, 11000),
+        ("tech", "Tech Talk India", "techtalk_in", "420K", "1.5M", 55000, 18000, 30000),
     ]
 
     cat_map = {c.slug: c.id for c in categories}
-    for slug, name, insta, followers, reach, price in demo_influencers:
+    for slug, name, insta, followers, reach, reel, story, post in demo_influencers:
         user = User(email=f"{insta}@demo.com", role="influencer")
         user.set_password("demo123")
         db.session.add(user)
@@ -98,9 +210,12 @@ def _seed_data():
                 full_name=name,
                 category_id=cat_map[slug],
                 instagram_handle=insta,
+                instagram_url=f"https://instagram.com/{insta}",
                 followers=followers,
                 monthly_reach=reach,
-                monthly_pricing=price,
+                reel_pricing=reel,
+                story_pricing=story,
+                post_pricing=post,
                 bio=f"Content creator specializing in {slug}. Available for brand collaborations.",
             )
         )

@@ -1,38 +1,39 @@
 {% extends "base.html" %}
 {% block title %}Influencer Dashboard — Influence Connect{% endblock %}
 
-{% macro format_num(n) -%}
-  {%- if n >= 1000000 -%}
-    {{ "%.1f"|format(n / 1000000) }}M
-  {%- elif n >= 1000 -%}
-    {{ "%.1f"|format(n / 1000) }}K
-  {%- else -%}
-    {{ n }}
-  {%- endif -%}
-{%- endmacro %}
-
 {% block content %}
 <div class="container">
   <div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
     <div>
       <h1>Welcome, {{ profile.full_name }} ⭐</h1>
-      <p>{{ profile.category.icon }} {{ profile.category.name }} · @{{ profile.instagram_handle }}</p>
+      <p>
+        {{ profile.category.icon }} {{ profile.category.name }} ·
+        <a href="{{ profile.profile_url }}" target="_blank" rel="noopener" class="insta-link">@{{ profile.instagram_handle }}</a>
+      </p>
     </div>
     <a href="{{ url_for('influencer.profile') }}" class="btn btn-ghost btn-sm">Edit Profile</a>
   </div>
 
-  <div class="stats-grid" style="margin-bottom: 48px;">
+  <div class="stats-grid pricing-stats" style="margin-bottom: 48px;">
     <div class="stat-card">
-      <div class="number">{{ format_num(profile.followers) }}</div>
+      <div class="number">{{ profile.followers }}</div>
       <div class="label">Followers</div>
     </div>
     <div class="stat-card">
-      <div class="number">{{ format_num(profile.monthly_reach) }}</div>
+      <div class="number">{{ profile.monthly_reach }}</div>
       <div class="label">Monthly Reach</div>
     </div>
     <div class="stat-card">
-      <div class="number">₹{{ "{:,.0f}".format(profile.monthly_pricing) }}</div>
-      <div class="label">Your Monthly Rate</div>
+      <div class="number">₹{{ "{:,.0f}".format(profile.reel_pricing) }}</div>
+      <div class="label">Reel Price</div>
+    </div>
+    <div class="stat-card">
+      <div class="number">₹{{ "{:,.0f}".format(profile.story_pricing) }}</div>
+      <div class="label">Story Price</div>
+    </div>
+    <div class="stat-card">
+      <div class="number">₹{{ "{:,.0f}".format(profile.post_pricing) }}</div>
+      <div class="label">Post Price</div>
     </div>
   </div>
 

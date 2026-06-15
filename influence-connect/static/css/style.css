@@ -480,6 +480,23 @@ a { color: inherit; text-decoration: none; }
 
 .form-group textarea { resize: vertical; min-height: 90px; }
 
+.field-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.insta-link {
+  color: var(--primary);
+  transition: opacity 0.2s;
+}
+
+.insta-link:hover {
+  opacity: 0.85;
+  text-decoration: underline;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -699,6 +716,47 @@ a { color: inherit; text-decoration: none; }
 .price-tag .period {
   font-size: 0.8rem;
   color: var(--text-muted);
+}
+
+.pricing-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.pricing-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(129, 140, 248, 0.08);
+  border: 1px solid rgba(129, 140, 248, 0.15);
+  border-radius: var(--radius-sm);
+  transition: background 0.3s;
+}
+
+.profile-card:hover .pricing-item {
+  background: rgba(129, 140, 248, 0.12);
+}
+
+.pricing-type {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.pricing-amount {
+  font-size: 1rem;
+  font-weight: 800;
+  background: var(--gradient-1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.pricing-stats {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 }
 
 .card-email {

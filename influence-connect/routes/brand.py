@@ -27,7 +27,7 @@ def category_influencers(slug):
     category = Category.query.filter_by(slug=slug).first_or_404()
     influencers = (
         InfluencerProfile.query.filter_by(category_id=category.id)
-        .order_by(InfluencerProfile.followers.desc())
+        .order_by(InfluencerProfile.full_name)
         .all()
     )
     profile = BrandProfile.query.filter_by(user_id=current_user.id).first()

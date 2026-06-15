@@ -4,6 +4,7 @@ from flask_login import current_user, login_required
 from extensions import db
 from models import BrandProfile, Category, InfluencerProfile
 from routes.auth import role_required
+from utils.instagram import normalize_stat, parse_instagram_handle, instagram_profile_url
 
 influencer_bp = Blueprint("influencer", __name__, url_prefix="/influencer")
 
@@ -31,15 +32,15 @@ def profile():
     if request.method == "POST":
         profile.full_name = request.form.get("full_name", profile.full_name).strip()
         profile.category_id = int(request.form.get("category_id", profile.category_id))
-        profile.instagram_handle = (
-            request.form.get("instagram_handle", profile.instagram_handle).strip().lstrip("@")
-        )
-        profile.followers = int(request.form.get("followers") or profile.followers)
-        profile.monthly_reach = int(request.form.get("monthly_reach") or profile.monthly_reach)
+        insta_input = request.form.get("instagram_handle", profile.instagram_handle).strip()
+        profile.instagram_handle = parse_instagram_handle(insta_input)
+        profile.instagram_url = instagram_profile_url(insta_input)
+        profile.followers = normalize_stat(request.form.get("followers", profile.followers))
+        profile.monthly_reach = normalize_stat(request.form.get("monthly_reach", profile.monthly_reach))
         try:
-            profile.monthly_pricing = float(
-                request.form.get("monthly_pricing", profile.monthly_pricing)
-            )
+            profile.reel_pricing = float(request.form.get("reel_pricing", profile.reel_pricing))
+            profile.story_pricing = float(request.form.get("story_pricing", profile.story_pricing))
+            profile.post_pricing = float(request.form.get("post_pricing", profile.post_pricing))
         except ValueError:
             flash("Invalid pricing value.", "error")
             return render_template("influencer/profile.html", profile=profile, categories=categories)

@@ -1,16 +1,6 @@
 {% extends "base.html" %}
 {% block title %}{{ category.name }} Influencers — Influence Connect{% endblock %}
 
-{% macro format_num(n) -%}
-  {%- if n >= 1000000 -%}
-    {{ "%.1f"|format(n / 1000000) }}M
-  {%- elif n >= 1000 -%}
-    {{ "%.1f"|format(n / 1000) }}K
-  {%- else -%}
-    {{ n }}
-  {%- endif -%}
-{%- endmacro %}
-
 {% block content %}
 <div class="container">
   <a href="{{ url_for('brand.dashboard') }}" class="back-link">← Back to Categories</a>
@@ -28,27 +18,36 @@
         <div class="avatar">{{ inf.full_name[0] }}</div>
         <div>
           <h3>{{ inf.full_name }}</h3>
-          <span class="handle">@{{ inf.instagram_handle }}</span>
+          <a href="{{ inf.profile_url }}" target="_blank" rel="noopener" class="handle insta-link">
+            @{{ inf.instagram_handle }} ↗
+          </a>
         </div>
       </div>
 
       <div class="card-stats">
         <div class="stat">
-          <div class="stat-value">{{ format_num(inf.followers) }}</div>
+          <div class="stat-value">{{ inf.followers }}</div>
           <div class="stat-label">Followers</div>
         </div>
         <div class="stat">
-          <div class="stat-value">{{ format_num(inf.monthly_reach) }}</div>
+          <div class="stat-value">{{ inf.monthly_reach }}</div>
           <div class="stat-label">Monthly Reach</div>
         </div>
       </div>
 
-      <div class="price-tag">
-        <div>
-          <div class="amount">₹{{ "{:,.0f}".format(inf.monthly_pricing) }}</div>
-          <div class="period">per month</div>
+      <div class="pricing-grid">
+        <div class="pricing-item">
+          <span class="pricing-type">🎬 Reel</span>
+          <span class="pricing-amount">₹{{ "{:,.0f}".format(inf.reel_pricing) }}</span>
         </div>
-        <span>💰</span>
+        <div class="pricing-item">
+          <span class="pricing-type">📱 Story</span>
+          <span class="pricing-amount">₹{{ "{:,.0f}".format(inf.story_pricing) }}</span>
+        </div>
+        <div class="pricing-item">
+          <span class="pricing-type">📸 Post</span>
+          <span class="pricing-amount">₹{{ "{:,.0f}".format(inf.post_pricing) }}</span>
+        </div>
       </div>
 
       <div class="card-email">
