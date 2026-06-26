@@ -67,6 +67,8 @@
       <thead>
         <tr>
           <th>Email</th>
+          <th>Username</th>
+          <th>Mobile</th>
           <th>Role</th>
           <th>Joined</th>
         </tr>
@@ -75,6 +77,8 @@
         {% for user in users %}
         <tr>
           <td>{{ user.email }}</td>
+          <td>{{ user.username or '—' }}</td>
+          <td>{{ user.mobile or '—' }}</td>
           <td><span class="badge badge-{{ user.role }}">{{ user.role }}</span></td>
           <td>{{ user.created_at.strftime('%d %b %Y') }}</td>
         </tr>

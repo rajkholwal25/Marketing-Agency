@@ -11,6 +11,8 @@ class User(UserMixin, db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    username = db.Column(db.String(80), unique=True, nullable=True, index=True)
+    mobile = db.Column(db.String(20), unique=True, nullable=True, index=True)
     password_hash = db.Column(db.String(256), nullable=False)
     role = db.Column(db.String(20), nullable=False)  # admin, brand, influencer
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

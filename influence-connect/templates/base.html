@@ -25,7 +25,7 @@
       </a>
       <div class="nav-links">
         {% if current_user.is_authenticated %}
-          <span class="nav-user">{{ current_user.email }} · {{ current_user.role }}</span>
+          <span class="nav-user">{{ current_user.username or current_user.email }} · {{ current_user.role }}</span>
           {% if current_user.role == 'brand' %}
             <a href="{{ url_for('brand.dashboard') }}" class="btn btn-ghost btn-sm">Dashboard</a>
           {% elif current_user.role == 'influencer' %}

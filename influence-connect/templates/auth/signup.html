@@ -22,6 +22,21 @@
 
       <div class="form-row">
         <div class="form-group">
+          <label for="username">Username *</label>
+          <input type="text" id="username" name="username" placeholder="yourname" required
+                 minlength="3" maxlength="30" pattern="[a-zA-Z0-9_]{3,30}"
+                 title="3–30 characters: letters, numbers, underscore">
+          <small class="field-hint">Used to log in — letters, numbers, underscore only</small>
+        </div>
+        <div class="form-group">
+          <label for="mobile">Mobile Number *</label>
+          <input type="tel" id="mobile" name="mobile" placeholder="9876543210" required
+                 pattern="[0-9+\s\-]{10,15}" title="10-digit Indian mobile number">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
           <label for="password">Password</label>
           <input type="password" id="password" name="password" placeholder="••••••••" required minlength="6">
         </div>

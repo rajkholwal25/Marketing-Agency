@@ -29,19 +29,11 @@ def create_app(config_class=Config):
     app.register_blueprint(admin_bp)
 
     with app.app_context():
-        try:
-            db.create_all()
-            _migrate_pricing_columns()
-            _migrate_profile_stats()
-            _seed_data()
-        except Exception as exc:
-            if app.config.get("SQLALCHEMY_DATABASE_URI", "").startswith("sqlite"):
-                raise
-            print(
-                "\n[!] Supabase connection failed - check DATABASE_URL password in .env\n"
-                f"   Error: {exc}\n"
-            )
-            raise SystemExit(1) from exc
+        db.create_all()
+        _migrate_pricing_columns()
+        _migrate_profile_stats()
+        _migrate_user_auth_columns()
+        _seed_data()
 
     return app
 
@@ -55,24 +47,27 @@ def _migrate_pricing_columns():
         return
 
     cols = {c["name"] for c in insp.get_columns("influencer_profiles")}
-    if "reel_pricing" in cols:
-        return
 
-    stmts = [
-        "ALTER TABLE influencer_profiles ADD COLUMN reel_pricing DOUBLE PRECISION DEFAULT 0",
-        "ALTER TABLE influencer_profiles ADD COLUMN story_pricing DOUBLE PRECISION DEFAULT 0",
-        "ALTER TABLE influencer_profiles ADD COLUMN post_pricing DOUBLE PRECISION DEFAULT 0",
-    ]
+    if "reel_pricing" not in cols:
+        stmts = [
+            "ALTER TABLE influencer_profiles ADD COLUMN reel_pricing DOUBLE PRECISION DEFAULT 0",
+            "ALTER TABLE influencer_profiles ADD COLUMN story_pricing DOUBLE PRECISION DEFAULT 0",
+            "ALTER TABLE influencer_profiles ADD COLUMN post_pricing DOUBLE PRECISION DEFAULT 0",
+        ]
+        if "monthly_pricing" in cols:
+            stmts.append(
+                "UPDATE influencer_profiles SET reel_pricing = monthly_pricing, "
+                "story_pricing = ROUND(monthly_pricing * 0.35), "
+                "post_pricing = ROUND(monthly_pricing * 0.5)"
+            )
+        with db.engine.begin() as conn:
+            for sql in stmts:
+                conn.execute(text(sql))
+        cols = {c["name"] for c in insp.get_columns("influencer_profiles")}
+
     if "monthly_pricing" in cols:
-        stmts.append(
-            "UPDATE influencer_profiles SET reel_pricing = monthly_pricing, "
-            "story_pricing = ROUND(monthly_pricing * 0.35), "
-            "post_pricing = ROUND(monthly_pricing * 0.5)"
-        )
-
-    with db.engine.begin() as conn:
-        for sql in stmts:
-            conn.execute(text(sql))
+        with db.engine.begin() as conn:
+            conn.execute(text("ALTER TABLE influencer_profiles DROP COLUMN monthly_pricing"))
 
 
 def _format_int_stat(value) -> str:
@@ -147,6 +142,64 @@ def _migrate_profile_stats():
         ))
 
 
+def _migrate_user_auth_columns():
+    """Add username/mobile columns and backfill usernames for existing users."""
+    import re
+
+    from sqlalchemy import inspect, text
+
+    from models import User
+
+    insp = inspect(db.engine)
+    if "users" not in insp.get_table_names():
+        return
+
+    cols = {c["name"] for c in insp.get_columns("users")}
+    if "username" not in cols:
+        with db.engine.begin() as conn:
+            conn.execute(text("ALTER TABLE users ADD COLUMN username VARCHAR(80)"))
+            conn.execute(text("ALTER TABLE users ADD COLUMN mobile VARCHAR(20)"))
+
+    users = User.query.filter(
+        (User.username.is_(None)) | (User.username == "")
+    ).all()
+    for user in users:
+        base = re.sub(r"[^a-z0-9_]", "", user.email.split("@")[0].lower()) or "user"
+        candidate = base[:30]
+        n = 1
+        while User.query.filter_by(username=candidate).filter(User.id != user.id).first():
+            suffix = str(n)
+            candidate = f"{base[: 30 - len(suffix)]}{suffix}"
+            n += 1
+        user.username = candidate
+
+    changed = bool(users)
+    for user in User.query.filter(User.mobile.is_(None)).all():
+        candidate = f"9876{user.id:06d}"
+        if not User.query.filter_by(mobile=candidate).filter(User.id != user.id).first():
+            user.mobile = candidate
+            changed = True
+
+    if changed:
+        db.session.commit()
+
+    demo_accounts = {
+        "admin@influence.com": {"username": "admin", "mobile": "9000000001"},
+        "brand@demo.com": {"username": "glowbrand", "mobile": "9000000002"},
+    }
+    demo_changed = False
+    for email, fields in demo_accounts.items():
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            continue
+        for key, value in fields.items():
+            if getattr(user, key) != value:
+                setattr(user, key, value)
+                demo_changed = True
+    if demo_changed:
+        db.session.commit()
+
+
 def _seed_data():
     from models import BrandProfile, Category, InfluencerProfile
 
@@ -166,12 +219,12 @@ def _seed_data():
     db.session.add_all(categories)
     db.session.flush()
 
-    admin = User(email="admin@influence.com", role="admin")
+    admin = User(email="admin@influence.com", role="admin", username="admin", mobile="9000000001")
     admin.set_password("admin123")
     db.session.add(admin)
 
     # Demo brand
-    brand_user = User(email="brand@demo.com", role="brand")
+    brand_user = User(email="brand@demo.com", role="brand", username="glowbrand", mobile="9000000002")
     brand_user.set_password("demo123")
     db.session.add(brand_user)
     db.session.flush()
@@ -199,8 +252,15 @@ def _seed_data():
     ]
 
     cat_map = {c.slug: c.id for c in categories}
-    for slug, name, insta, followers, reach, reel, story, post in demo_influencers:
-        user = User(email=f"{insta}@demo.com", role="influencer")
+    for idx, (slug, name, insta, followers, reach, reel, story, post) in enumerate(
+        demo_influencers, start=1
+    ):
+        user = User(
+            email=f"{insta}@demo.com",
+            role="influencer",
+            username=insta,
+            mobile=f"9876{idx:06d}",
+        )
         user.set_password("demo123")
         db.session.add(user)
         db.session.flush()

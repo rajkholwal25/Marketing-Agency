@@ -5,6 +5,13 @@ from flask_login import current_user, login_required, login_user, logout_user
 
 from extensions import db
 from models import BrandProfile, Category, InfluencerProfile, User
+from utils.auth import (
+    find_user_by_login,
+    is_valid_mobile,
+    is_valid_username,
+    normalize_mobile,
+    normalize_username,
+)
 from utils.instagram import normalize_stat, parse_instagram_handle, instagram_profile_url
 
 auth_bp = __import__("flask").Blueprint("auth", __name__)
@@ -33,17 +40,17 @@ def login():
         role = "brand"
 
     if request.method == "POST":
-        email = request.form.get("email", "").strip().lower()
+        login_id = request.form.get("login_id", "").strip()
         password = request.form.get("password", "")
         role = request.form.get("role", role)
 
-        user = User.query.filter_by(email=email, role=role).first()
+        user = find_user_by_login(login_id, role)
         if user and user.check_password(password):
             login_user(user)
             next_page = request.args.get("next")
             return redirect(next_page or _dashboard_for_role(user.role))
 
-        flash("Invalid email or password for this role.", "error")
+        flash("Invalid login details or password for this role.", "error")
 
     return render_template("auth/login.html", role=role)
 
@@ -61,22 +68,32 @@ def signup():
 
     if request.method == "POST":
         email = request.form.get("email", "").strip().lower()
+        username = normalize_username(request.form.get("username", ""))
+        mobile = normalize_mobile(request.form.get("mobile", ""))
         password = request.form.get("password", "")
         confirm = request.form.get("confirm_password", "")
         role = request.form.get("role", role)
 
-        if not email or not password:
-            flash("Email and password are required.", "error")
+        if not email or not password or not username or not mobile:
+            flash("Email, username, mobile, and password are required.", "error")
+        elif not is_valid_username(username):
+            flash("Username must be 3–30 characters (letters, numbers, underscore only).", "error")
+        elif not is_valid_mobile(mobile):
+            flash("Enter a valid 10-digit Indian mobile number.", "error")
         elif password != confirm:
             flash("Passwords do not match.", "error")
         elif User.query.filter_by(email=email).first():
             flash("An account with this email already exists.", "error")
+        elif User.query.filter_by(username=username).first():
+            flash("This username is already taken.", "error")
+        elif User.query.filter_by(mobile=mobile).first():
+            flash("This mobile number is already registered.", "error")
         elif role == "brand":
             company_name = request.form.get("company_name", "").strip()
             if not company_name:
                 flash("Company name is required.", "error")
             else:
-                user = User(email=email, role="brand")
+                user = User(email=email, username=username, mobile=mobile, role="brand")
                 user.set_password(password)
                 db.session.add(user)
                 db.session.flush()
@@ -114,7 +131,12 @@ def signup():
                     if reel_val <= 0 and story_val <= 0 and post_val <= 0:
                         flash("Enter at least one pricing amount.", "error")
                     else:
-                        user = User(email=email, role="influencer")
+                        user = User(
+                            email=email,
+                            username=username,
+                            mobile=mobile,
+                            role="influencer",
+                        )
                         user.set_password(password)
                         db.session.add(user)
                         db.session.flush()

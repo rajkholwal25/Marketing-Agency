@@ -17,8 +17,10 @@
       <input type="hidden" name="role" value="{{ role }}">
 
       <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" placeholder="you@company.com" required autofocus>
+        <label for="login_id">Email, username, or mobile</label>
+        <input type="text" id="login_id" name="login_id"
+               placeholder="you@email.com / yourname / 9876543210" required autofocus>
+        <small class="field-hint">Use any one — email, username, or 10-digit mobile number</small>
       </div>
 
       <div class="form-group">
@@ -42,11 +44,11 @@
     </p>
     {% elif role == 'brand' %}
     <p class="auth-footer" style="margin-top: 16px; font-size: 0.8rem;">
-      Demo: brand@demo.com / demo123
+      Demo: brand@demo.com / glowbrand / 9000000002 — password: demo123
     </p>
     {% elif role == 'influencer' %}
     <p class="auth-footer" style="margin-top: 16px; font-size: 0.8rem;">
-      Demo: kavya_glam@demo.com / demo123
+      Demo: kavya_glam@demo.com / kavya_glam / 9876000007 — password: demo123
     </p>
     {% endif %}
   </div>

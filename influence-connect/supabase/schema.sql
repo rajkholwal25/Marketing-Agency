@@ -4,12 +4,16 @@
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     email VARCHAR(120) NOT NULL UNIQUE,
+    username VARCHAR(80) UNIQUE,
+    mobile VARCHAR(20) UNIQUE,
     password_hash VARCHAR(256) NOT NULL,
     role VARCHAR(20) NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS ix_users_email ON users (email);
+CREATE INDEX IF NOT EXISTS ix_users_username ON users (username);
+CREATE INDEX IF NOT EXISTS ix_users_mobile ON users (mobile);
 
 CREATE TABLE IF NOT EXISTS categories (
     id SERIAL PRIMARY KEY,
